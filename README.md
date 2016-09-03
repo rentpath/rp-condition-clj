@@ -1,16 +1,18 @@
 # rp.condition
 
-This library provides a simple condition system for Clojure, inspired by Chris Houser's [_Condition Systems in an Exceptional Language_](https://www.youtube.com/watch?v=zp0OEDcAro0).
+This library provides a simple condition system for Clojure, inspired by Chris Houser's [_Condition Systems in an Exceptional Language_](https://www.youtube.com/watch?v=zp0OEDcAro0). It's primary purpose is to provide a set of public, shared conditions to be used across libraries and applications within an organization.
 
 See `rp.condition` for the public conditions provided. Unless otherwise rebound, conditions in this library will throw a `clojure.lang.ExceptionInfo` exception.
 
 ## Usage
 
-It is not uncommon for timeouts to occur when communicating over a network. This library includes a `rp.condition/*timeout*` condition that represents this scenario.
+It is not uncommon for timeouts to occur when communicating over a network. This library includes a `rp.condition/*timeout*` condition that represents this "exceptional" condition.
 
 If you use `*timeout*` in isolation, it will throw an exception:
 
 ```clj
+(require '[rp.condition :refer [*timeout*]])
+
 (defn make-networked-call [args]
   (let [fut (future (network-call args))
         result (deref fut 1000 ::timeout)]
@@ -28,6 +30,12 @@ By using the dynamically-scoped nature of Clojure's dynamic var's, you can rebin
 ;; Returns response from the network call if
 ;; it doesn't timeout, else []
 ```
+
+### Errors and Restarts
+
+An error condition is one that, when rebound, provides the ability of code higher in the call stack to inject default values into lower levels of the code. This can be a static default value, as shown in the timeout example above, or a value computed based on runtime values.
+
+Restarts in a condition system support choosing one or more code branches to follow depending on the nature of the exceptional situation at runtime. This library does not currently include the machinery for restarts, but it can be added when the need arises.
 
 ## License
 

@@ -1,4 +1,4 @@
-(defproject com.rentpath/rp-condition-clj "0.1.1"
+(defproject com.rentpath/rp-condition-clj "0.1.2-SNAPSHOT"
   :description "Simple condition system for Clojure"
   :url "https://github.com/rentpath/rp-condition-clj"
   :license {:name "Eclipse Public License"

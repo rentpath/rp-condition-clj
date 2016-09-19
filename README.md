@@ -1,8 +1,13 @@
 # rp.condition
 
-This library provides a simple condition system for Clojure, inspired by Chris Houser's [_Condition Systems in an Exceptional Language_](https://www.youtube.com/watch?v=zp0OEDcAro0). It's primary purpose is to provide a set of public, shared conditions to be used across libraries and applications within an organization.
+[![Build Status](https://travis-ci.org/rentpath/rp-condition-clj.svg?branch=master)](https://travis-ci.org/rentpath/rp-condition-clj) [![Clojars Project](https://img.shields.io/clojars/v/com.rentpath/rp-condition-clj.svg)](https://clojars.org/com.rentpath/rp-condition-clj)
 
-See `rp.condition` for the public conditions provided. Unless otherwise rebound, conditions in this library will throw a `clojure.lang.ExceptionInfo` exception.
+
+This library provides abstractions for dealing with errors and "exceptional" conditions with tools outside of Java exceptions.
+
+The `rp.condition` namespace provides a simple condition system for Clojure, inspired by Chris Houser's [_Condition Systems in an Exceptional Language_](https://www.youtube.com/watch?v=zp0OEDcAro0). It's primary purpose is to provide a set of public, shared conditions to be used across libraries and applications within an organization. See `rp.condition` for the public conditions provided. Unless otherwise rebound, conditions in this library will throw a `clojure.lang.ExceptionInfo` exception.
+
+The `rp.condition.result` namespace provides a simple result type in the spirit of Rust's [Result](https://doc.rust-lang.org/std/result/). The `result` function builds a result, and the `unwrap` and `with-result` forms provide a means to handle the "ok" and "error" scenarios of a given result value.
 
 ## Usage
 

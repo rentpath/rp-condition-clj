@@ -54,7 +54,7 @@ lein vcs assert-committed
 
 RELEASE_LEVEL="${1:-CURRENT_SNAPSHOT}"
 
-if [ $RELEASE_LEVEL='CURRENT_SNAPSHOT' ] || [ $RELEASE_LEVEL=":current" ] ; then
+if [ "$RELEASE_LEVEL" = 'CURRENT_SNAPSHOT' ] || [ "$RELEASE_LEVEL" = ":current" ] ; then
     echo "Using current version (sans -SNAPSHOT) as release version..."
     lein change version leiningen.release/bump-version release
 else

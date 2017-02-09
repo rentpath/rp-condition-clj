@@ -53,7 +53,7 @@
         (is (= 1 @error-runs))
         ;; DON'T FORGET
         (reset-all))
-      (let [ok-nil (with-result (result (do (inc-main) false))
+      (let [ok-nil (with-result (result (do (inc-main) nil))
                      [:ok n] (do (inc-ok) "nada")
                      [:error e] (do (inc-error) (ex-data e)))]
         (is (= "nada" ok-nil))

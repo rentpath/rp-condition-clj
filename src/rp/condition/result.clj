@@ -77,14 +77,10 @@
         [error error-binding] error-condition-binding]
     (validate-match-args conditions ok error)
     `(let [result# ~result ;; Evaluate form that returns Result only once
-           ok-result# (:ok result#)]
-       (if ok-result#
+           ok-result# (:ok result#)
+           error-result# (:error result#)]
+       (if error-result#
+         (let [~error-binding error-result#]
+           ~error-branch)
          (let [~ok-binding ok-result#]
-           ~ok-branch)
-         (if-let [error-result# (:error result#)]
-           (let [~error-binding error-result#]
-             ~error-branch)
-           ;; This is reached if Result's `:ok` is set to a falsey value,
-           ;; which does not denote error-ness.
-           (let [~ok-binding ok-result#]
-             ~ok-branch))))))
+           ~ok-branch)))))

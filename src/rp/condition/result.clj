@@ -53,7 +53,7 @@
 
   ;; Destructuring is supported, just like in `let`
   (with-result (result {:answer 42})
-    [:ok {:keys [answer]}] (/ answer 2) 
+    [:ok {:keys [answer]}] (/ answer 2)
     [:error e]             (ex-data e)) ;=> 21
 
   ;; Order of the :ok/:error clauses doesn't matter
@@ -63,18 +63,28 @@
   [result
    condition-binding-a branch-a
    condition-binding-b branch-b]
-  (let [conditions #{:ok :error}
-        [condition-a binding-a] condition-binding-a
-        [condition-b binding-b] condition-binding-b
-        bindings-a [binding-a `(~condition-a ~result)]
-        bindings-b [binding-b `(~condition-b ~result)]]
-    (validate-match-args conditions condition-a condition-b)
-    `(if-let [a# (~condition-a ~result)]
-       (let* ~(destructure bindings-a)
-         ~branch-a)
-       (if-let [b# (~condition-b ~result)]
-         (let* ~(destructure bindings-b)
-           ~branch-b)
-         ;; This means Result was "purposefully" built with nil as the ok value:
-         (let* ~(destructure bindings-a)
-           ~branch-a)))))
+  (let [conditions #{:ok :error} ;; these access the Result record
+        ;; Allow :ok and :error branches in either order.
+        ;; Bindings...
+        [ok-condition-binding error-condition-binding] (if (= (first condition-binding-a) :ok)
+                                                         [condition-binding-a condition-binding-b]
+                                                         [condition-binding-b condition-binding-a])
+        ;; ...and Branches
+        [ok-branch error-branch] (if (= condition-binding-a ok-condition-binding)
+                                   [branch-a branch-b]
+                                   [branch-b branch-a])
+        [ok ok-binding] ok-condition-binding
+        [error error-binding] error-condition-binding]
+    (validate-match-args conditions ok error)
+    `(let [result# ~result ;; Evaluate form that returns Result only once
+           ok-result# (:ok result#)]
+       (if ok-result#
+         (let [~ok-binding ok-result#]
+           ~ok-branch)
+         (if-let [error-result# (:error result#)]
+           (let [~error-binding error-result#]
+             ~error-branch)
+           ;; This is reached if Result's `:ok` is set to a falsey value,
+           ;; which does not denote error-ness.
+           (let [~ok-binding ok-result#]
+             ~ok-branch))))))

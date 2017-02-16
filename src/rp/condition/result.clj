@@ -84,3 +84,10 @@
            ~error-branch)
          (let [~ok-binding ok-result#]
            ~ok-branch)))))
+
+;; A non-macro alternative to `with-result`
+(defn handle-result
+  [ok-fn error-fn {:keys [ok error]}]
+  (if error
+    (error-fn error)
+    (ok-fn ok)))

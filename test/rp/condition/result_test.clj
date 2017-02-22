@@ -141,3 +141,17 @@
         (is (= 0 @error-runs))
         ;; DON'T FORGET
         (reset-all)))))
+
+(deftest test-pipeline
+  (let [init 5]
+    (is (= (map->Result {:ok init :error nil}) (pipeline [] init)))
+    (is (= (map->Result {:ok init :error nil}) (pipeline nil init)))
+
+    (let [inc-step (fn [n] (result (inc n)))
+          double-step (fn [n] (result (* 2 n)))
+          ex (ex-info "Oh no" {:foo "bar"})
+          err-step (fn [n] (result ex))]
+      (is (= (map->Result {:ok 13 :error nil})
+             (pipeline [inc-step double-step inc-step] init)))
+      (is (= (map->Result {:ok nil :error ex})
+             (pipeline [inc-step double-step err-step inc-step] init))))))

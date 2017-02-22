@@ -91,3 +91,18 @@
   (if error
     (error-fn error)
     (ok-fn ok)))
+
+(defn pipeline
+  "Pass `init` data value into a pipeline of functions.
+   Each function should return a \"result\".
+   As soon as an :error is encountered, the pipeline will return an :error result.
+   Otherwise the :ok value from each result will be passed as the input into the next
+   function until all functions have been called, and the final result will be returned.
+
+   When there are no functions, returns `(result init)`"
+  [[f & more-fs] init]
+  (if f
+    (handle-result (fn [x] (pipeline more-fs x))
+                   (fn [e] (result e))
+                   (f init))
+    (result init)))

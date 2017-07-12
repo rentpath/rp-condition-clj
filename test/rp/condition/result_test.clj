@@ -27,23 +27,23 @@
 (deftest test-handle-result
   (is (= 21
          (handle-result (fn [n] (/ n 2))
-                        (fn [e] (ex-data e))
+                        (fn [e] e)
                         (result 42))))
   (is (= 21
          (handle-result (fn [{:keys [answer]}] (/ answer 2))
-                        (fn [e] (ex-data e))
+                        (fn [e] e)
                         (result {:answer 42})))
       "Should support destructuring")
   (is (= :bears
          (handle-result (fn [n] "We could have been great together.")
-                        (fn [e] (:type (ex-data e)))
-                        (result (ex-info "Bad news" {:type :bears})))))
+                        (fn [e] (:type e))
+                        (error {:msg "Bad news" :type :bears}))))
   (is (= :null-and-void
          (handle-result (fn [n] (if-not n
                                   :null-and-void
                                   (/ n 2)))
-                        (fn [e] (ex-data e))
-                        (result nil)))
+                        (fn [e] e)
+                        (ok nil)))
       "A result is 'ok' as long as its :error is not set. The :ok may be falsey."))
 
 (deftest test-with-result-evaluates-forms-once
@@ -144,14 +144,20 @@
 
 (deftest test-pipeline
   (let [init 5]
-    (is (= (map->Result {:ok init :error nil}) (pipeline [] init)))
-    (is (= (map->Result {:ok init :error nil}) (pipeline nil init)))
+    (is (= (ok init) (pipeline [] init)))
+    (is (= (ok init) (pipeline nil init)))
 
-    (let [inc-step (fn [n] (result (inc n)))
-          double-step (fn [n] (result (* 2 n)))
-          ex (ex-info "Oh no" {:foo "bar"})
-          err-step (fn [n] (result ex))]
-      (is (= (map->Result {:ok 13 :error nil})
-             (pipeline [inc-step double-step inc-step] init)))
-      (is (= (map->Result {:ok nil :error ex})
-             (pipeline [inc-step double-step err-step inc-step] init))))))
+    (let [inc-step (fn [n] (ok (inc n)))
+          double-step (fn [n] (ok (* 2 n)))
+          bad-step (fn [n] :not-a-result)
+          err "Oh no"
+          err-step (fn [n] (error err))]
+      (testing "pipeline runs successfully to completion"
+        (is (= (ok 13)
+               (pipeline [inc-step double-step inc-step] init))))
+      (testing "pipeline stops when it encounters an error"
+        (is (= (error err)
+               (pipeline [inc-step double-step err-step inc-step] init))))
+      (testing "pipeline throws an exception when a step doesn't return a Result"
+        (is (thrown? AssertionError
+               (pipeline [inc-step double-step bad-step inc-step] init)))))))

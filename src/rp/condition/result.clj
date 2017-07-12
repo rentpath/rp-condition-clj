@@ -4,12 +4,22 @@
 
 (defrecord Result [ok error])
 
+(defn ok
+  "Returns an ok Result for the given value"
+  [x]
+  (->Result x nil))
+
+(defn error
+  "Returns an error Result for the given value (note that value could be anything; it need not be an `ExceptionInfo`)"
+  [x]
+  (->Result nil x))
+
 (defn result
   "A result is in an 'error' state if its `error` entry has an instance of `ExceptionInfo` as its value. Otherwise it's assumed to be `ok`."
   [x]
   (if (instance? ExceptionInfo x)
-    (->Result nil x)
-    (->Result x nil)))
+    (error x)
+    (ok x)))
 
 (defn unwrap
   "Blindly ask for the result, throwing the `(:error result)` exception if the result has an error instead."
@@ -87,22 +97,23 @@
 
 ;; A non-macro alternative to `with-result`
 (defn handle-result
-  [ok-fn error-fn {:keys [ok error]}]
+  [ok-fn error-fn {:keys [ok error] :as result}]
+  {:pre [(instance? Result result)]}
   (if error
     (error-fn error)
     (ok-fn ok)))
 
 (defn pipeline
   "Pass `init` data value into a pipeline of functions.
-   Each function should return a \"result\".
+   Each function should return a Result.
    As soon as an :error is encountered, the pipeline will return an :error result.
    Otherwise the :ok value from each result will be passed as the input into the next
    function until all functions have been called, and the final result will be returned.
 
-   When there are no functions, returns `(result init)`"
+   When there are no functions, returns `(ok init)`"
   [[f & more-fs] init]
   (if f
     (handle-result (fn [x] (pipeline more-fs x))
-                   (fn [e] (result e))
+                   (fn [e] (error e))
                    (f init))
-    (result init)))
+    (ok init)))
